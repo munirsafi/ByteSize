@@ -25,7 +25,7 @@ contract ByteSize {
             return false;
         }
 
-        uint256 loanID = byteStorage.addLoan(msg.sender, lender, amount, length, 0);
+        uint256 loanID = byteStorage.createLoan();
 
         emit LoanRequested(loanID);
         return true;

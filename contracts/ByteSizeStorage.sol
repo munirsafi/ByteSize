@@ -3,19 +3,19 @@ pragma solidity ^0.4.24;
 contract ByteSizeStorage {
 
     struct Loan {
-        address requester;
-        address lender;
-
-        uint256 amount;
-        uint32 length;
-        uint8 status;
+        mapping(bytes32 => bool) _bool;
+        mapping(bytes32 => int) _int;
+        mapping(bytes32 => uint256) _uint;
+        mapping(bytes32 => string) _string;
+        mapping(bytes32 => address) _address;
+        mapping(bytes32 => bytes) _bytes;
     }
 
     // Global Variables
-    Loan[] public loans;
-
     address owner;
     address byteSize;
+
+    Loan[] internal loans;
 
     constructor() public {
         owner = msg.sender;
@@ -26,21 +26,35 @@ contract ByteSizeStorage {
         _;
     }
 
-    function addLoan(address requester, address lender, uint256 amount, uint32 length, uint8 status) public isValidated returns(uint256) {
-        Loan memory newLoan = Loan(requester, lender, amount, length, status);
+    function createLoan() public isValidated returns(uint256) {
+        Loan memory newLoan;
         loans.push(newLoan);
-        
+
         return loans.length - 1;
     }
 
-    function removeLoan(uint256 loanID) public returns(bool) {
-        if(loans.length < loanID) {
-            revert();
-            return false;
-        }
+    function setBoolean(bytes32 key, bool value, uint loanID) public isValidated {
+        loans[loanID]._bool[key] = value;
+    }
 
-        delete loans[loanID];
-        return true;
+    function setInt(bytes32 key, int value, uint loanID) public isValidated {
+        loans[loanID]._int[key] = value;
+    }
+
+    function setUint(bytes32 key, uint value, uint loanID) public isValidated {
+        loans[loanID]._uint[key] = value;
+    }
+
+    function setString(bytes32 key, string value, uint loanID) public isValidated {
+        loans[loanID]._string[key] = value;
+    }
+
+    function setAddress(bytes32 key, address value, uint loanID) public isValidated {
+        loans[loanID]._address[key] = value;
+    }
+
+    function setBytes(bytes32 key, bytes value, uint loanID) public isValidated {
+        loans[loanID]._bytes[key] = value;
     }
 
 }
