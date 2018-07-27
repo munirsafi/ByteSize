@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 contract ByteSizeStorage {
 
@@ -17,7 +17,7 @@ contract ByteSizeStorage {
     address owner;
     address byteSize;
 
-    function ByteSizeStorage() internal {
+    constructor() public {
         owner = msg.sender;
     }
 
@@ -34,7 +34,10 @@ contract ByteSizeStorage {
     }
 
     function removeLoan(uint256 loanID) public returns(bool) {
-        if(loans.length < loanID) { revert(); return false; }
+        if(loans.length < loanID) {
+            revert();
+            return false;
+        }
 
         delete loans[loanID];
         return true;
