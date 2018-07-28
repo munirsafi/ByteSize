@@ -4,7 +4,6 @@ import "./ByteSizeStorage.sol";
 contract ByteSize {
 
     // Global Variable Storage
-    address owner;
     ByteSizeStorage byteStorage;
 
     // Event Triggers
@@ -15,7 +14,6 @@ contract ByteSize {
     event CompletedLoan(uint256 loanID);
 
     constructor(address _byteStorage) public {
-        owner = msg.sender;
         byteStorage = ByteSizeStorage(_byteStorage);
     }
 
