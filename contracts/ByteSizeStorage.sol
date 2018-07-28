@@ -67,6 +67,42 @@ contract ByteSizeStorage {
         return true;
     }
 
+    function newResolution(string description) public returns(bool) {
+        if(governance[msg.sender] != true) {
+            revert();
+            return false;
+        }
+
+        Resolution memory newResolution = Resolution(resolutions.length, 0, 0, 0, "In Progress", description);
+        resolutions.push(newResolution);
+        return true;
+    }
+
+    function castVote(uint resolutionID, int decision) public returns(bool) {
+        if(governance[msg.sender] != true || resolutions[resolutionID]._castVotes[msg.sender] == true) {
+            revert();
+            return false;
+        }
+
+        if(decision == 1) {
+            resolutions[resolutionID]._for++;
+            resolutions[resolutionID]._castVotes[msg.sender] = true;
+        } else if(decision == -1) {
+            resolutions[resolutionID]._against++;
+            resolutions[resolutionID]._castVotes[msg.sender] = true;
+        } else if(decision == 0) {
+            resolutions[resolutionID]._abstain++;
+            resolutions[resolutionID]._castVotes[msg.sender] = true;
+        } else {
+            revert();
+            return false;
+        }
+    }
+
+    function tallyVote() public view returns(int) {
+        
+    }
+
 
 
     // ETERNAL STORAGE OPERATIONS
