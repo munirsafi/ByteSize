@@ -1,7 +1,10 @@
 pragma solidity ^0.4.24;
+
 import "./ByteSizeGovernance.sol";
+import "./SafeMath.sol";
 
 contract ByteSizeStorage {
+    using SafeMath for uint256;
 
     struct Loan {
         mapping(bytes32 => bool) _bool;

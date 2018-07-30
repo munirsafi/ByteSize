@@ -1,7 +1,10 @@
 pragma solidity ^0.4.24;
+
 import "./ByteSizeStorage.sol";
+import "./SafeMath.sol";
 
 contract ByteSize {
+    using SafeMath for uint256;
 
     // Global Variable Storage
     ByteSizeStorage byteStorage;
