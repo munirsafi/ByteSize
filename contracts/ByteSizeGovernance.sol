@@ -8,8 +8,8 @@ contract ByteSizeGovernance {
         uint256 _against;
         uint256 _abstain;
 
-        string _status;
-        string _description;
+        bytes32 _status;
+        bytes32 _description;
         mapping(address => bool) _castVotes;
     }
 
@@ -17,7 +17,7 @@ contract ByteSizeGovernance {
     mapping(address => bool) public governance;
     Resolution[] internal resolutions;
 
-    constructor() {
+    constructor() public {
         governance[msg.sender] = true;
     }
 
@@ -45,7 +45,7 @@ contract ByteSizeGovernance {
         return true;
     }
 
-    function newResolution(string description) public returns(bool) {
+    function createResolution(bytes32 description) public returns(bool) {
         if(governance[msg.sender] != true) {
             revert();
             return false;
@@ -75,10 +75,6 @@ contract ByteSizeGovernance {
             revert();
             return false;
         }
-    }
-
-    function tallyVote() public view returns(int) {
-        
     }
 
 }
