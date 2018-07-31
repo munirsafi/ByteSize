@@ -12,11 +12,12 @@ contract ByteSize {
     // Event Triggers
     event LoanRequested(uint256 loanID);
     event StartedLoan(uint256 loanID);
+    event DeniedLoan(uint256 loanID);
     event CanceledLoan(uint256 loanID);
     event PaidLoan(uint256 loanID, uint8 status);
     event CompletedLoan(uint256 loanID);
 
-    enum Status { REQUESTED , ACCEPTED, CANCELED, COMPLETED, COMPLETED_LATE }
+    enum Status { REQUESTED , ACCEPTED, DENIED, CANCELED, COMPLETED, COMPLETED_LATE }
 
     constructor(address _byteStorage) public {
         byteStorage = ByteSizeStorage(_byteStorage);
@@ -32,10 +33,18 @@ contract ByteSize {
     }
 
     function acceptLoan(uint loanID) public returns(bool) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("loan.lender", msg.sender))));
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("loan.lender"))));
 
         byteStorage.setUint(keccak256(abi.encodePacked("loan.status")), uint(Status.ACCEPTED), loanID);
         emit StartedLoan(loanID);
+        return true;
+    }
+
+    function denyLoan(uint loanID) public returns(bool) {
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("loan.lender"))));
+
+        byteStorage.setUint(keccak256(abi.encodePacked("loan.status")), uint(Status.DENIED), loanID);
+        emit DeniedLoan(loanID);
         return true;
     }
 
