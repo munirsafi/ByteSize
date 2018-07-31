@@ -21,10 +21,7 @@ contract ByteSize {
     }
 
     function requestLoan(address lender, uint32 length, uint256 amount) public returns(bool) {
-        if(lender == msg.sender || amount == 0 || length < 10) {
-            revert();
-            return false;
-        }
+        require(lender != msg.sender || amount != 0 || length > 10);
 
         uint256 loanID = byteStorage.createLoan();
 

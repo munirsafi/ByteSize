@@ -1,6 +1,9 @@
 pragma solidity ^0.4.24;
 
+import "./SafeMath.sol";
+
 contract ByteSizeGovernance {
+    using SafeMath for uint256;
 
     struct Resolution {
         uint256 _resolutionID;
@@ -24,10 +27,7 @@ contract ByteSizeGovernance {
     // GOVERNANCE OPERATIONS
 
     function addBoardMember(address member) public returns(bool) {
-        if(governance[msg.sender] != true) {
-            revert();
-            return false;
-        }
+        require(governance[msg.sender] = true);
 
         governance[member] = true;
         totalBoardMembers++;
@@ -35,10 +35,7 @@ contract ByteSizeGovernance {
     }
 
     function removeBoardMember(address member) public returns(bool) {
-        if(governance[msg.sender] != true || msg.sender == member || address(this) == member) {
-            revert();
-            return false;
-        }
+        require(governance[msg.sender] == true || msg.sender != member || address(this) != member);
 
         governance[member] = false;
         totalBoardMembers--;
@@ -46,10 +43,7 @@ contract ByteSizeGovernance {
     }
 
     function createResolution(bytes32 description) public returns(bool) {
-        if(governance[msg.sender] != true) {
-            revert();
-            return false;
-        }
+        require(governance[msg.sender] == true);
 
         Resolution memory newResolution = Resolution(resolutions.length, 0, 0, 0, "In Progress", description);
         resolutions.push(newResolution);
@@ -57,20 +51,20 @@ contract ByteSizeGovernance {
     }
 
     function castVote(uint resolutionID, int decision) public returns(bool) {
-        if(governance[msg.sender] != true || resolutions[resolutionID]._castVotes[msg.sender] == true) {
-            revert();
-            return false;
-        }
+        require(governance[msg.sender] == true || resolutions[resolutionID]._castVotes[msg.sender] != true);
 
         if(decision == 1) {
             resolutions[resolutionID]._for++;
             resolutions[resolutionID]._castVotes[msg.sender] = true;
+            return true;
         } else if(decision == -1) {
             resolutions[resolutionID]._against++;
             resolutions[resolutionID]._castVotes[msg.sender] = true;
+            return true;
         } else if(decision == 0) {
             resolutions[resolutionID]._abstain++;
             resolutions[resolutionID]._castVotes[msg.sender] = true;
+            return true;
         } else {
             revert();
             return false;

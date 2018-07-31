@@ -26,7 +26,7 @@ contract ByteSizeStorage {
     constructor() public { }
 
     modifier isValidated() {
-        if(msg.sender != byteSize) revert();
+        require(msg.sender == byteSize);
         _;
     }
 
