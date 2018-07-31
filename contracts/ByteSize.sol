@@ -16,6 +16,8 @@ contract ByteSize {
     event PaidLoan(uint256 loanID, uint8 status);
     event CompletedLoan(uint256 loanID);
 
+    enum Status { REQUESTED , ACCEPTED, CANCELED, COMPLETED, COMPLETED_LATE }
+
     constructor(address _byteStorage) public {
         byteStorage = ByteSizeStorage(_byteStorage);
     }
@@ -26,6 +28,14 @@ contract ByteSize {
         uint256 loanID = byteStorage.createLoan();
 
         emit LoanRequested(loanID);
+        return true;
+    }
+
+    function acceptLoan(uint loanID) public returns(bool) {
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("loan.lender", msg.sender))));
+
+        byteStorage.setUint(keccak256(abi.encodePacked("loan.status")), uint(Status.ACCEPTED), loanID);
+        emit StartedLoan(loanID);
         return true;
     }
 

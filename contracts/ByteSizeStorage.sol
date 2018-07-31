@@ -65,4 +65,29 @@ contract ByteSizeStorage {
         loans[loanID]._bytes[key] = value;
     }
 
+
+    function getBoolean(uint loanID, bytes32 key) public view isValidated returns(bool) {
+        return loans[loanID]._bool[key];
+    }
+
+    function getInt(uint loanID, bytes32 key) public view isValidated returns(int) {
+        return loans[loanID]._int[key];
+    }
+
+    function getUint(uint loanID, bytes32 key) public view isValidated returns(uint) {
+        return loans[loanID]._uint[key];
+    }
+
+    function getString(uint loanID, bytes32 key) public view isValidated returns(string) {
+        return loans[loanID]._string[key];
+    }
+
+    function getAddress(uint loanID, bytes32 key) public view isValidated returns(address) {
+        return loans[loanID]._address[key];
+    }
+
+    function getBytes(uint loanID, bytes32 key) public view isValidated returns(bytes) {
+        return loans[loanID]._bytes[key];
+    }
+
 }
