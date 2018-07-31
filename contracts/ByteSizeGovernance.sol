@@ -71,4 +71,15 @@ contract ByteSizeGovernance {
         }
     }
 
+    function tallyVotes(uint resolutionID) public view returns(bool) {
+        uint totalVotes = resolutions[resolutionID]._for + resolutions[resolutionID]._against + resolutions[resolutionID]._abstain;
+        require(governance[msg.sender] == true && totalVotes > totalBoardMembers);
+
+        if(resolutions[resolutionID]._for > resolutions[resolutionID]._against + resolutions[resolutionID]._abstain) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
