@@ -1,8 +1,12 @@
 const ByteSize = artifacts.require("../contracts/ByteSize.sol");
 const ByteSizeStorage = artifacts.require("../contracts/ByteSizeStorage.sol");
 
-module.exports = function (deployer) {
+module.exports = (deployer) => {
     deployer.deploy(ByteSizeStorage).then(() => {
-        deployer.deploy(ByteSize, ByteSizeStorage.address);
-    });
+        return ByteSizeStorage.deployed().then((instance) => {
+            return instance;
+        }).then((byteSizeStorage) => {
+            return deployer.deploy(ByteSize, byteSizeStorage.address);
+        });
+    })
 };

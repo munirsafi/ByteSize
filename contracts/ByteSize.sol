@@ -7,7 +7,7 @@ contract ByteSize {
     using SafeMath for uint256;
 
     // Global Variable Storage
-    ByteSizeStorage byteStorage;
+    ByteSizeStorage public byteStorage;
 
     // Event Triggers
     event LoanRequested(uint256 loanID);
@@ -21,6 +21,10 @@ contract ByteSize {
 
     constructor(address _byteStorage) public {
         byteStorage = ByteSizeStorage(_byteStorage);
+    }
+
+    function getStorageAddress() public view returns(address) {
+        return address(byteStorage);
     }
 
     function requestLoan(address lender, uint32 length, uint256 amount) public returns(bool) {
