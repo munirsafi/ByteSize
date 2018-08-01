@@ -23,14 +23,10 @@ contract ByteSize {
         byteStorage = ByteSizeStorage(_byteStorage);
     }
 
-    function getStorageAddress() public view returns(address) {
-        return address(byteStorage);
-    }
-
-    function requestLoan(address lender, uint32 length, uint256 amount) public returns(bool) {
+    function requestLoan(address lender, uint256 amount, uint32 length, uint interest) public returns(bool) {
         require(lender != msg.sender || amount != 0 || length > 10);
 
-        uint256 loanID = byteStorage.createLoan();
+        uint256 loanID = byteStorage.createLoan(lender, amount, length, interest);
 
         emit LoanRequested(loanID);
         return true;

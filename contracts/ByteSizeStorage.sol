@@ -37,6 +37,12 @@ contract ByteSizeStorage {
     function createLoan() public isValidated returns(uint256) {
         Loan memory newLoan = Loan();
         loans.push(newLoan);
+        return loans.length - 1;
+    }
+
+    function createLoan(address lender, uint amount, uint length, uint interest) public isValidated returns(uint256) {
+        Loan memory newLoan = Loan();
+        loans.push(newLoan);
 
         return loans.length - 1;
     }
