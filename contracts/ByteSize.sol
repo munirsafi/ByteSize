@@ -23,27 +23,26 @@ contract ByteSize {
         byteStorage = ByteSizeStorage(_byteStorage);
     }
 
-    function requestLoan(address lender, uint256 amount, uint32 length, uint interest) public returns(bool) {
+    function requestLoan(address lender, uint256 amount, uint32 length, uint256 interest) public returns(bool) {
         require(lender != msg.sender || amount != 0 || length > 10);
-
-        uint256 loanID = byteStorage.createLoan(lender, amount, length, interest);
+        uint256 loanID = byteStorage.createLoan(lender, msg.sender, amount, length, interest, uint(Status.REQUESTED));
 
         emit LoanRequested(loanID);
         return true;
     }
 
     function acceptLoan(uint loanID) public returns(bool) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("loan.lender"))));
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))));
 
-        byteStorage.setUint(keccak256(abi.encodePacked("loan.status")), uint(Status.ACCEPTED), loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.ACCEPTED), loanID);
         emit StartedLoan(loanID);
         return true;
     }
 
     function denyLoan(uint loanID) public returns(bool) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("loan.lender"))));
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))));
 
-        byteStorage.setUint(keccak256(abi.encodePacked("loan.status")), uint(Status.DENIED), loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.DENIED), loanID);
         emit DeniedLoan(loanID);
         return true;
     }

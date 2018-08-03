@@ -34,40 +34,48 @@ contract ByteSizeStorage {
 
     // ETERNAL STORAGE OPERATIONS
 
-    function createLoan() public isValidated returns(uint256) {
+    function createLoan() public returns(uint256) {
         Loan memory newLoan = Loan();
         loans.push(newLoan);
         return loans.length - 1;
     }
 
-    function createLoan(address lender, uint amount, uint length, uint interest) public isValidated returns(uint256) {
+    function createLoan(address lender, address borrower, uint amount, uint length, uint interest, uint status) public returns(uint256) {
         Loan memory newLoan = Loan();
         loans.push(newLoan);
 
-        return loans.length - 1;
+        uint loanID = loans.length - 1;
+        setAddress(keccak256(abi.encodePacked("lender")), lender, loanID);
+        setAddress(keccak256(abi.encodePacked("borrower")), borrower, loanID);
+        setUint(keccak256(abi.encodePacked("amount")), amount, loanID);
+        setUint(keccak256(abi.encodePacked("length")), length, loanID);
+        setUint(keccak256(abi.encodePacked("interest")), interest, loanID);
+        setUint(keccak256(abi.encodePacked("status")), status, loanID);
+
+        return loanID;
     }
 
-    function setBoolean(bytes32 key, bool value, uint loanID) public isValidated {
+    function setBoolean(bytes32 key, bool value, uint loanID) public {
         loans[loanID]._bool[key] = value;
     }
 
-    function setInt(bytes32 key, int value, uint loanID) public isValidated {
+    function setInt(bytes32 key, int value, uint loanID) public {
         loans[loanID]._int[key] = value;
     }
 
-    function setUint(bytes32 key, uint value, uint loanID) public isValidated {
+    function setUint(bytes32 key, uint value, uint loanID) public {
         loans[loanID]._uint[key] = value;
     }
 
-    function setString(bytes32 key, string value, uint loanID) public isValidated {
+    function setString(bytes32 key, string value, uint loanID) public {
         loans[loanID]._string[key] = value;
     }
 
-    function setAddress(bytes32 key, address value, uint loanID) public isValidated {
+    function setAddress(bytes32 key, address value, uint loanID) public {
         loans[loanID]._address[key] = value;
     }
 
-    function setBytes(bytes32 key, bytes value, uint loanID) public isValidated {
+    function setBytes(bytes32 key, bytes value, uint loanID) public {
         loans[loanID]._bytes[key] = value;
     }
 
