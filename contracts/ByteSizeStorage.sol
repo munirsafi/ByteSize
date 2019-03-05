@@ -1,6 +1,5 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
-import "./ByteSizeGovernance.sol";
 import "./SafeMath.sol";
 
 contract ByteSizeStorage {
@@ -15,92 +14,91 @@ contract ByteSizeStorage {
         mapping(bytes32 => bytes) _bytes;
     }
 
-    // Global Variables
-
+    address public owner;
     address public byteSize;
-    Loan[] internal loans;
+    Loan[] loans;
 
+    constructor() public {
+        owner = msg.sender;
+    }
 
+    /**
+      * @dev allows for the lending contract to be swapped out with a
+      *      newer, updated contract
+      */
+    function updateContract(address newContract) public returns(bool) {
+        require(msg.sender == owner, "You are not the owner of this contract");
+        byteSize = newContract;
+        return true;
+    }
 
-    // CONTRACT OPERATIONS
-    constructor() public { }
-
+    /**
+      * @dev validates the requesting entity is authorized to make changes
+      */
     modifier isValidated() {
-        require(msg.sender == byteSize);
+        require(msg.sender == byteSize, "Unauthorized access");
         _;
     }
 
-
-
-    // ETERNAL STORAGE OPERATIONS
-
+    /**
+      * @dev Creates a new loan object and inserts it into the loans array
+      * @return loanID the index of the  the newly created loan object
+      */
     function createLoan() public returns(uint256) {
         Loan memory newLoan = Loan();
         loans.push(newLoan);
         return loans.length - 1;
     }
 
-    function createLoan(address lender, address borrower, uint amount, uint length, uint interest, uint status) public returns(uint256) {
-        Loan memory newLoan = Loan();
-        loans.push(newLoan);
 
-        uint loanID = loans.length - 1;
-        setAddress(keccak256(abi.encodePacked("lender")), lender, loanID);
-        setAddress(keccak256(abi.encodePacked("borrower")), borrower, loanID);
-        setUint(keccak256(abi.encodePacked("amount")), amount, loanID);
-        setUint(keccak256(abi.encodePacked("length")), length, loanID);
-        setUint(keccak256(abi.encodePacked("interest")), interest, loanID);
-        setUint(keccak256(abi.encodePacked("status")), status, loanID);
-
-        return loanID;
-    }
-
-    function setBoolean(bytes32 key, bool value, uint loanID) public {
+    // Loan object setters
+    function setBoolean(bytes32 key, bool value, uint loanID) public isValidated {
         loans[loanID]._bool[key] = value;
     }
 
-    function setInt(bytes32 key, int value, uint loanID) public {
+    function setInt(bytes32 key, int value, uint loanID) public isValidated {
         loans[loanID]._int[key] = value;
     }
 
-    function setUint(bytes32 key, uint value, uint loanID) public {
+    function setUint(bytes32 key, uint value, uint loanID) public isValidated {
         loans[loanID]._uint[key] = value;
     }
 
-    function setString(bytes32 key, string value, uint loanID) public {
+    function setString(bytes32 key, string memory value, uint loanID) public isValidated {
         loans[loanID]._string[key] = value;
     }
 
-    function setAddress(bytes32 key, address value, uint loanID) public {
+    function setAddress(bytes32 key, address value, uint loanID) public isValidated {
         loans[loanID]._address[key] = value;
     }
 
-    function setBytes(bytes32 key, bytes value, uint loanID) public {
+    function setBytes(bytes32 key, bytes memory value, uint loanID) public isValidated {
         loans[loanID]._bytes[key] = value;
     }
 
 
-    function getBoolean(uint loanID, bytes32 key) public view isValidated returns(bool) {
+    // Loan object getters
+    function getBoolean(uint loanID, bytes32 key) public view returns(bool) {
         return loans[loanID]._bool[key];
     }
 
-    function getInt(uint loanID, bytes32 key) public view isValidated returns(int) {
+    function getInt(uint loanID, bytes32 key) public view returns(int) {
         return loans[loanID]._int[key];
     }
 
-    function getUint(uint loanID, bytes32 key) public view isValidated returns(uint) {
+    function getUint(uint loanID, bytes32 key) public view returns(uint) {
         return loans[loanID]._uint[key];
     }
 
-    function getString(uint loanID, bytes32 key) public view isValidated returns(string) {
+    function getString(uint loanID, bytes32 key) public view returns(string memory) {
         return loans[loanID]._string[key];
     }
 
-    function getAddress(uint loanID, bytes32 key) public view isValidated returns(address) {
+    function getAddress(uint loanID, bytes32 key) public view returns(address) {
         return loans[loanID]._address[key];
     }
 
-    function getBytes(uint loanID, bytes32 key) public view isValidated returns(bytes) {
+    function getBytes(uint loanID, bytes32 key) public view returns(bytes memory) {
         return loans[loanID]._bytes[key];
     }
 
