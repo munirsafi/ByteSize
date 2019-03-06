@@ -1,9 +1,6 @@
 const ByteSize = artifacts.require("../contracts/ByteSize.sol");
 const ByteSizeStorage = artifacts.require("../contracts/ByteSizeStorage.sol");
 
-const web3 = require('web3-utils');
-
-
 contract('ByteSize', async (accounts) => {
 
     it("should return the address of the ByteSizeStorage contract", async () => {
@@ -38,8 +35,20 @@ contract('ByteSize', async (accounts) => {
         await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
         await byteSizeInstance.acceptLoan(0, { from: accounts[3] });
 
-        const result = await byteStorageInstance.getUint.call(0, web3.soliditySha3('status'), { from: accounts[0], gas: 450000 });
+        const result = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('status'), { from: accounts[0], gas: 450000 });
         assert.equal(result.toNumber(), 1, "The loan wasn't successfully accepted by the lender");
+    });
+
+    it("should return false since the loan's status is no longer requested and we're trying to deny it", async () => {
+        const byteSizeInstance = await ByteSize.deployed();
+        const byteStorageInstance = await ByteSizeStorage.deployed();
+        await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
+
+        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
+        await byteSizeInstance.acceptLoan(0, { from: accounts[3] });
+
+        const result = await byteSizeInstance.denyLoan.call(0, { from: accounts[3] });
+        assert.equal(result, false, "The loan was denied even though it was in a non-requested state");
     });
 
 });

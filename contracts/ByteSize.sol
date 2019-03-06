@@ -55,9 +55,13 @@ contract ByteSize {
     function acceptLoan(uint loanID) public returns(bool) {
         require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))), "Unauthorized access");
 
-        byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.ACCEPTED), loanID);
-        emit StartedLoan(loanID);
-        return true;
+        if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.REQUESTED)) {
+            byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.ACCEPTED), loanID);
+            emit StartedLoan(loanID);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -67,9 +71,13 @@ contract ByteSize {
     function denyLoan(uint loanID) public returns(bool) {
         require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))), "Error");
 
-        byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.DENIED), loanID);
-        emit DeniedLoan(loanID);
-        return true;
+        if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.REQUESTED)) {
+            byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.DENIED), loanID);
+            emit DeniedLoan(loanID);
+            return true;
+        }
+
+        return false;
     }
 
 }
