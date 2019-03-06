@@ -1,7 +1,20 @@
 {
   "name": "bytesize",
   "version": "0.1.0",
+  "author": "Munir Safi",
   "description": "A decentralized lending platform",
+  "license": "MIT",
+  "keywords": [
+    "decentralized",
+    "lending",
+    "blockchain",
+    "ethereum",
+    "solidity",
+    "eternal",
+    "storage",
+    "trustless",
+    "loans"
+  ],
   "main": "truffle.js",
   "directories": {
     "test": "test"
@@ -11,8 +24,6 @@
     "web3-utils": "^1.0.0-beta.47"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Munir Safi",
-  "license": "ISC"
+    "test": "truffle test"
+  }
 }
