@@ -32,8 +32,8 @@ contract('ByteSize', async (accounts) => {
         const byteStorageInstance = await ByteSizeStorage.deployed();
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
-        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(0, { from: accounts[3] });
+        await byteSizeInstance.requestLoan(accounts[3], web3.utils.toWei("0.5", 'ether'), 1000, 100, { from: accounts[0], gas: 450000 });
+        await byteSizeInstance.acceptLoan(0, { from: accounts[3], value: web3.utils.toWei("0.5", 'ether') });
 
         const result = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('status'), { from: accounts[0], gas: 450000 });
         assert.equal(result.toNumber(), 1, "The loan wasn't successfully accepted by the lender");
@@ -45,10 +45,22 @@ contract('ByteSize', async (accounts) => {
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
         await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(0, { from: accounts[3] });
+        await byteSizeInstance.acceptLoan(1, { from: accounts[3], value: 1000 });
 
-        const result = await byteSizeInstance.denyLoan.call(0, { from: accounts[3] });
+        const result = await byteSizeInstance.denyLoan.call(1, { from: accounts[3] });
         assert.equal(result, false, "The loan was denied even though it was in a non-requested state");
+    });
+
+    it("should return a date value for the loan's start date property", async () => {
+        const byteSizeInstance = await ByteSize.deployed();
+        const byteStorageInstance = await ByteSizeStorage.deployed();
+        await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
+
+        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
+        await byteSizeInstance.acceptLoan(0, { from: accounts[3], value: 100 });
+
+        const result = await byteStorageInstance.getUint.call(2, web3.utils.soliditySha3('start_time'), { from: accounts[0] });
+        assert.ok(typeof result.toNumber() === 'number');
     });
 
 });
