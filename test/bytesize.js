@@ -57,10 +57,38 @@ contract('ByteSize', async (accounts) => {
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
         await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(0, { from: accounts[3], value: 100 });
+        await byteSizeInstance.acceptLoan(2, { from: accounts[3], value: 100 });
 
         const result = await byteStorageInstance.getUint.call(2, web3.utils.soliditySha3('start_time'), { from: accounts[0] });
         assert.ok(typeof result.toNumber() === 'number');
+    });
+
+    it("should return a value of 50, referencing the amount of wei paid back so far", async () => {
+        const byteSizeInstance = await ByteSize.deployed();
+        const byteStorageInstance = await ByteSizeStorage.deployed();
+        await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
+
+        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
+        await byteSizeInstance.acceptLoan(3, { from: accounts[3], value: 100 });
+        await byteSizeInstance.payLoan(3, { from: accounts[0], value: 50 });
+
+        const paidBack = await byteStorageInstance.getUint.call(3, web3.utils.soliditySha3('paid_back'), { from: accounts[0] });
+        assert.equal(paidBack.toNumber(), 50, "The amount was not successfully paid to the loan");
+    });
+
+    it("should submit multiple payments to a loan that will add up to 90", async () => {
+        const byteSizeInstance = await ByteSize.deployed();
+        const byteStorageInstance = await ByteSizeStorage.deployed();
+        await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
+
+        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
+        await byteSizeInstance.acceptLoan(4, { from: accounts[3], value: 100 });
+        await byteSizeInstance.payLoan(4, { from: accounts[0], value: 40 });
+        await byteSizeInstance.payLoan(4, { from: accounts[0], value: 20 });
+        await byteSizeInstance.payLoan(4, { from: accounts[0], value: 30 });
+
+        const paidBack = await byteStorageInstance.getUint.call(4, web3.utils.soliditySha3('paid_back'), { from: accounts[0] });
+        assert.equal(paidBack.toNumber(), 90, "The amount was not successfully paid to the loan");
     });
 
 });
