@@ -44,6 +44,7 @@ contract ByteSize {
         byteStorage.setUint(keccak256(abi.encodePacked("loan_length")), length, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_interest")), interest, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_status")), uint(Status.REQUESTED), loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("paid_back")), 0, loanID);
 
         emit LoanRequested(loanID);
         return loanID;
@@ -94,7 +95,7 @@ contract ByteSize {
       * @return <uint> the total of how much has been paid back so far
     */
     function payLoan(uint loanID) public payable returns(uint) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("borrower"))) && msg.value > 0, "Error");
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("borrower"))) && msg.value > 0, "Requirements not met");
 
         if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.ACCEPTED) ||
             byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.ACTIVE)) {
