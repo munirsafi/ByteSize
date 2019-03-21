@@ -127,6 +127,7 @@ contract ByteSize {
             uint paidBackSoFar = byteStorage.getUint(loanID, keccak256(abi.encodePacked("paid_back")));
             uint loanAmount = byteStorage.getUint(loanID, keccak256(abi.encodePacked("loan_amount")));
             address payable lender = address(uint160(byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender")))));
+            uint256 targetDate = byteStorage.getUint(loanID, keccak256(abi.encodePacked("target_completion_date")));
 
             if(paidBackSoFar <= loanAmount) {
                 if(paidBackSoFar + msg.value < loanAmount) {
@@ -135,8 +136,12 @@ contract ByteSize {
                     emit LoanPaid(loanID, byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))));
                     return paidBackSoFar + msg.value;
                 } else {
+                    if(block.timestamp > targetDate) {
+                        byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.COMPLETED_LATE), loanID);
+                    } else {
+                        byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.COMPLETED), loanID);
+                    }
                     byteStorage.setUint(keccak256(abi.encodePacked("paid_back")), paidBackSoFar + msg.value, loanID);
-                    byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.COMPLETED), loanID);
                     emit LoanCompleted(loanID);
                     return paidBackSoFar + msg.value;
                 }
