@@ -3,6 +3,8 @@ const ByteSizeStorage = artifacts.require("../contracts/ByteSizeStorage.sol");
 
 contract('ByteSize', async (accounts) => {
 
+    /** Administrative **/
+
     it("should return the address of the ByteSizeStorage contract", async () => {
         const instance = await ByteSize.deployed();
         const address = await instance.byteStorage.call();
@@ -18,77 +20,88 @@ contract('ByteSize', async (accounts) => {
         assert.notEqual('0x' + '0'.repeat(40), address, "The address in ByteSizeStorage was not successfully updated");
     });
 
+    /** Loan Creation **/
+
     it("should create a new loan and store it in ByteSizeStorage", async () => {
         const byteSizeInstance = await ByteSize.deployed();
         const byteStorageInstance = await ByteSizeStorage.deployed();
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
-        const loanIndex = await byteSizeInstance.requestLoan.call(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        assert.equal(loanIndex, 0, "The loan wasn't successfully stored in the loans array");
+        const loanIndex = await byteSizeInstance.requestLoan.call(accounts[3], 100, 86400, 0, { from: accounts[0], gas: 550000 });
+        await byteSizeInstance.requestLoan(accounts[3], 100, 86400, 0, { from: accounts[0], gas: 550000 });
+        
+        const lender = await byteStorageInstance.getAddress.call(0, web3.utils.soliditySha3('lender'), { from: accounts[0], gas: 450000 });
+        const borrower = await byteStorageInstance.getAddress.call(0, web3.utils.soliditySha3('borrower'), { from: accounts[0], gas: 450000 });
+        const loanAmount = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('loan_amount'), { from: accounts[0], gas: 450000 });
+        const loanLength = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('loan_length'), { from: accounts[0], gas: 450000 });
+        const targetCompletionDate = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('target_completion_date'), { from: accounts[0], gas: 450000 });
+        const loanInterest = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('loan_interest'), { from: accounts[0], gas: 450000 });
+        const loanStatus = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('loan_status'), { from: accounts[0], gas: 450000 });
+
+        assert.equal(loanIndex, 0, "The loan wasn't successfully created");
+        assert.equal(lender, accounts[3], "The lender wasn't saved correctly");
+        assert.equal(borrower, accounts[0], "The borrower wasn't saved correctly");
+        assert.equal(loanAmount, 100, "The loan amount wasn't saved correctly");
+        assert.equal(loanLength, 86400, "The loan amount wasn't saved correctly");
+        assert.notEqual(targetCompletionDate, 0, "The loan's target completion date wasn't saved correctly");
+        assert.equal(loanInterest, 0, "The loan's interest percentage wasn't saved correctly");
+        assert.equal(loanStatus, 0, "The loan's current status wasn't saved correctly");
     });
 
-    it("should create a new loan and the lender should accept it", async () => {
+    it("should revert since we're attempting to create a loan to ourselves", async () => {
         const byteSizeInstance = await ByteSize.deployed();
         const byteStorageInstance = await ByteSizeStorage.deployed();
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
-        await byteSizeInstance.requestLoan(accounts[3], web3.utils.toWei("0.5", 'ether'), 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(0, { from: accounts[3], value: web3.utils.toWei("0.5", 'ether') });
-
-        const result = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('status'), { from: accounts[0], gas: 450000 });
-        assert.equal(result.toNumber(), 1, "The loan wasn't successfully accepted by the lender");
+        let result;
+        try {
+            result = await byteSizeInstance.requestLoan(accounts[0], 100, 86400, 10, { from: accounts[0], gas: 450000 });
+        } catch(err) {
+            result = err.toString().includes("Invalid request - you cannot be the lender!");
+        }
+        assert.equal(result, true, "The loan was created even though a revert should've occurred");
     });
 
-    it("should return false since the loan's status is no longer requested and we're trying to deny it", async () => {
+    it("should revert since we're attempting to create a loan below the 100 wei requirement", async () => {
         const byteSizeInstance = await ByteSize.deployed();
         const byteStorageInstance = await ByteSizeStorage.deployed();
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
-        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(1, { from: accounts[3], value: 1000 });
-
-        const result = await byteSizeInstance.denyLoan.call(1, { from: accounts[3] });
-        assert.equal(result, false, "The loan was denied even though it was in a non-requested state");
+        let result;
+        try {
+            result = await byteSizeInstance.requestLoan(accounts[3], 10, 86400, 10, { from: accounts[0], gas: 450000 });
+        } catch(err) {
+            result = err.toString().includes("Invalid request - the minimum amount of wei should be 100");
+        }
+        assert.equal(result, true, "The loan was created even though a revert should've occurred");
     });
 
-    it("should return a date value for the loan's start date property", async () => {
+    it("should revert since we're attempting to create a loan that's shorter than 24 hours", async () => {
         const byteSizeInstance = await ByteSize.deployed();
         const byteStorageInstance = await ByteSizeStorage.deployed();
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
-        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(2, { from: accounts[3], value: 100 });
-
-        const result = await byteStorageInstance.getUint.call(2, web3.utils.soliditySha3('start_time'), { from: accounts[0] });
-        assert.ok(typeof result.toNumber() === 'number');
+        let result;
+        try {
+            result = await byteSizeInstance.requestLoan(accounts[3], 100, 120, 10, { from: accounts[0], gas: 450000 });
+        } catch(err) {
+            result = err.toString().includes("Invalid request - the loan length must be at least 24 hours");
+        }
+        assert.equal(result, true, "The loan was created even though a revert should've occurred");
     });
 
-    it("should return a value of 50, referencing the amount of wei paid back so far", async () => {
+    it("should revert since we're attempting to create a loan with over 100% interest", async () => {
         const byteSizeInstance = await ByteSize.deployed();
         const byteStorageInstance = await ByteSizeStorage.deployed();
         await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
 
-        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(3, { from: accounts[3], value: 100 });
-        await byteSizeInstance.payLoan(3, { from: accounts[0], value: 50 });
-
-        const paidBack = await byteStorageInstance.getUint.call(3, web3.utils.soliditySha3('paid_back'), { from: accounts[0] });
-        assert.equal(paidBack.toNumber(), 50, "The amount was not successfully paid to the loan");
-    });
-
-    it("should submit multiple payments to a loan that will add up to 90", async () => {
-        const byteSizeInstance = await ByteSize.deployed();
-        const byteStorageInstance = await ByteSizeStorage.deployed();
-        await byteStorageInstance.updateContract(ByteSize.address, { from: accounts[0], gas: 450000 });
-
-        await byteSizeInstance.requestLoan(accounts[3], 100, 1000, 100, { from: accounts[0], gas: 450000 });
-        await byteSizeInstance.acceptLoan(4, { from: accounts[3], value: 100 });
-        await byteSizeInstance.payLoan(4, { from: accounts[0], value: 40 });
-        await byteSizeInstance.payLoan(4, { from: accounts[0], value: 20 });
-        await byteSizeInstance.payLoan(4, { from: accounts[0], value: 30 });
-
-        const paidBack = await byteStorageInstance.getUint.call(4, web3.utils.soliditySha3('paid_back'), { from: accounts[0] });
-        assert.equal(paidBack.toNumber(), 90, "The amount was not successfully paid to the loan");
+        let result;
+        try {
+            result = await byteSizeInstance.requestLoan(accounts[3], 100, 86400, 110, { from: accounts[0], gas: 450000 });
+        } catch(err) {
+            result = err.toString().includes("Invalid request - interest percentage cannot exceed the entire value of the loan!");
+        }
+        assert.equal(result, true, "The loan was created even though a revert should've occurred");
     });
 
 });

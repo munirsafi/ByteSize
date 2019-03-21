@@ -29,19 +29,23 @@ contract ByteSize {
       *      its properties for the provided values
       * @param lender the address of the wallet providing the loan
       * @param amount the number of tokens requested for the loan
-      * @param length the length in minutes that the loan should last for
+      * @param duration the length in minutes that the loan should last for
       * @param interest the interest percentage to be applied over the
                         duration of the loan
       * @return <uint> the ID of the newly created loan
     */
-    function requestLoan(address lender, uint256 amount, uint32 length, uint256 interest) public returns(uint) {
-        require(lender != msg.sender || amount != 0 || length > 10, "Invalid request; missing parameters");
+    function requestLoan(address lender, uint256 amount, uint32 duration, uint256 interest) public returns(uint) {
+        require(lender != msg.sender, "Invalid request - you cannot be the lender!");
+        require(amount >= 100, "Invalid request - the minimum amount of wei should be 100");
+        require(duration >= 86400, "Invalid request - the loan length must be at least 24 hours");
+        require(interest < 100, "Invalid request - interest percentage cannot exceed the entire value of the loan!");
         uint256 loanID = byteStorage.createLoan();
 
         byteStorage.setAddress(keccak256(abi.encodePacked("lender")), lender, loanID);
         byteStorage.setAddress(keccak256(abi.encodePacked("borrower")), msg.sender, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_amount")), amount, loanID);
-        byteStorage.setUint(keccak256(abi.encodePacked("loan_length")), length, loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("loan_length")), duration, loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("target_completion_date")), block.timestamp + duration, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_interest")), interest, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_status")), uint(Status.REQUESTED), loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("paid_back")), 0, loanID);
@@ -112,6 +116,7 @@ contract ByteSize {
                     return paidBackSoFar + msg.value;
                 } else {
                     byteStorage.setUint(keccak256(abi.encodePacked("paid_back")), paidBackSoFar + msg.value, loanID);
+                    byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.COMPLETED), loanID);
                     emit LoanCompleted(loanID);
                     return paidBackSoFar + msg.value;
                 }
@@ -120,7 +125,7 @@ contract ByteSize {
             }
 
         } else {
-            revert("This loan is no longer in an active state.");
+            revert("This loan is not in an active state.");
         }
     }
 
