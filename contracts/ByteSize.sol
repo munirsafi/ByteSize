@@ -82,7 +82,7 @@ contract ByteSize {
       * @return <boolean> true if the loan was successfully denied, or false if not
     */
     function denyLoan(uint loanID) public returns(bool) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))), "In valid");
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))), "Invalid request - you are not the lender of this loan");
 
         if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.REQUESTED)) {
             byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.DENIED), loanID);
@@ -95,12 +95,31 @@ contract ByteSize {
     }
 
     /**
+      * @dev allows the borrower to cancel a loan request they made, only before
+      *      it gets accepted by the lender
+      * @param loanID ID of the requested loan
+      * @return <boolean> true if the loan was successfully canceled, or false if not
+    */
+    function cancelLoan(uint loanID) public returns(bool) {
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("borrower"))), "Invalid request - you are not the borrower of this loan");
+
+        if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.REQUESTED)) {
+            byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.CANCELED), loanID);
+            emit LoanCanceled(loanID);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
       * @dev gives the borrower the ability to pay back towards a certain loan
       * @param loanID ID of the requested loan
       * @return <uint> the total of how much has been paid back so far
     */
     function payLoan(uint loanID) public payable returns(uint) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("borrower"))) && msg.value > 0, "Requirements not met");
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("borrower"))), "Invalid request - you are not the borrower of this loan");
+        require(msg.value > 0, "Invalid request - you must include an amount of wei in your transaction");
 
         if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.ACCEPTED) ||
             byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.ACTIVE)) {
