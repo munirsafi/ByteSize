@@ -59,10 +59,11 @@ contract ByteSize {
       * @param loanID ID of the requested loan
     */
     function acceptLoan(uint loanID) public payable returns(bool) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))) && msg.value > 0, "Unauthorized access");
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))), "Invalid request - you are not the lender of this loan");
+        uint256 loanAmount = byteStorage.getUint(loanID, keccak256(abi.encodePacked("loan_amount")));
+        require(msg.value == loanAmount, "Invalid request - the loan amount must be included in an accept transaction");
 
         address payable borrower = address(uint160(byteStorage.getAddress(loanID, keccak256(abi.encodePacked("borrower")))));
-        uint256 loanAmount = byteStorage.getUint(loanID, keccak256(abi.encodePacked("loan_amount")));
 
         if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.REQUESTED)) {
             byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.ACCEPTED), loanID);
@@ -81,7 +82,7 @@ contract ByteSize {
       * @return <boolean> true if the loan was successfully denied, or false if not
     */
     function denyLoan(uint loanID) public returns(bool) {
-        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))), "Error");
+        require(msg.sender == byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender"))), "In valid");
 
         if(byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.REQUESTED)) {
             byteStorage.setUint(keccak256(abi.encodePacked("status")), uint(Status.DENIED), loanID);
