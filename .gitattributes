@@ -1,2 +1,2 @@
 *.sol linguist-language=Solidity
-static/* linguist-vendored
+test/* linguist-vendored
