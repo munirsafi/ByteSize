@@ -41,9 +41,11 @@ contract ByteSize {
         require(interest < 100, "Invalid request - interest percentage cannot exceed the entire value of the loan!");
         uint256 loanID = byteStorage.createLoan();
 
+        uint256 loanAmount = amount + ((amount * interest) / 100);
+
         byteStorage.setAddress(keccak256(abi.encodePacked("lender")), lender, loanID);
         byteStorage.setAddress(keccak256(abi.encodePacked("borrower")), msg.sender, loanID);
-        byteStorage.setUint(keccak256(abi.encodePacked("loan_amount")), amount, loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("loan_amount")), loanAmount, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_length")), duration, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("target_completion_date")), block.timestamp + duration, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_interest")), interest, loanID);
