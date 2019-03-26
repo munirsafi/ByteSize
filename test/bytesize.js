@@ -213,4 +213,19 @@ contract('ByteSize', async (accounts) => {
         assert.equal(paidBack.toNumber(), 90, "The amount was not successfully paid to the loan");
     });
 
+    it("should submit multiple payments to pay back the loan entirely and change its status to complete", async () => {
+        const byteStorageInstance = await ByteSizeStorage.new();
+        const byteSizeInstance = await ByteSize.new(byteStorageInstance.address);
+        await byteStorageInstance.updateContract(byteSizeInstance.address, { from: accounts[0], gas: 450000 });
+
+        await byteSizeInstance.requestLoan(accounts[3], 100, 86400, 10, { from: accounts[0], gas: 450000 });
+        await byteSizeInstance.acceptLoan(0, { from: accounts[3], value: 100 });
+        await byteSizeInstance.payLoan(0, { from: accounts[0], value: 40 });
+        await byteSizeInstance.payLoan(0, { from: accounts[0], value: 40 });
+        await byteSizeInstance.payLoan(0, { from: accounts[0], value: 30 });
+
+        const status = await byteStorageInstance.getUint.call(0, web3.utils.soliditySha3('status'), { from: accounts[0] });
+        assert.equal(status.toNumber(), 5, "The amount was not successfully paid to the loan");
+    });
+
 });

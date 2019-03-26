@@ -45,7 +45,8 @@ contract ByteSize {
 
         byteStorage.setAddress(keccak256(abi.encodePacked("lender")), lender, loanID);
         byteStorage.setAddress(keccak256(abi.encodePacked("borrower")), msg.sender, loanID);
-        byteStorage.setUint(keccak256(abi.encodePacked("loan_amount")), loanAmount, loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("loan_amount")), amount, loanID);
+        byteStorage.setUint(keccak256(abi.encodePacked("loan_amount_interest")), loanAmount, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_length")), duration, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("target_completion_date")), block.timestamp + duration, loanID);
         byteStorage.setUint(keccak256(abi.encodePacked("loan_interest")), interest, loanID);
@@ -127,7 +128,7 @@ contract ByteSize {
             byteStorage.getUint(loanID, keccak256(abi.encodePacked("status"))) == uint(Status.ACTIVE)) {
 
             uint paidBackSoFar = byteStorage.getUint(loanID, keccak256(abi.encodePacked("paid_back")));
-            uint loanAmount = byteStorage.getUint(loanID, keccak256(abi.encodePacked("loan_amount")));
+            uint loanAmount = byteStorage.getUint(loanID, keccak256(abi.encodePacked("loan_amount_interest")));
             address payable lender = address(uint160(byteStorage.getAddress(loanID, keccak256(abi.encodePacked("lender")))));
             uint256 targetDate = byteStorage.getUint(loanID, keccak256(abi.encodePacked("target_completion_date")));
 
