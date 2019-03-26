@@ -34,12 +34,12 @@ contract ByteSize {
                         duration of the loan
       * @return <uint> the ID of the newly created loan
     */
-    function requestLoan(address lender, uint256 amount, uint32 duration, uint256 interest) public returns(uint) {
+    function requestLoan(address lender, uint256 amount, uint32 duration, uint256 interest) public returns(uint256 loanID) {
         require(lender != msg.sender, "Invalid request - you cannot be the lender!");
         require(amount >= 100, "Invalid request - the minimum amount of wei should be 100");
         require(duration >= 86400, "Invalid request - the loan length must be at least 24 hours");
         require(interest < 100, "Invalid request - interest percentage cannot exceed the entire value of the loan!");
-        uint256 loanID = byteStorage.createLoan();
+        loanID = byteStorage.createLoan();
 
         uint256 loanAmount = amount + ((amount * interest) / 100);
 
@@ -54,7 +54,6 @@ contract ByteSize {
         byteStorage.setUint(keccak256(abi.encodePacked("paid_back")), 0, loanID);
 
         emit LoanRequested(loanID);
-        return loanID;
     }
 
     /**
@@ -148,12 +147,10 @@ contract ByteSize {
                     emit LoanCompleted(loanID);
                     return paidBackSoFar + msg.value;
                 }
-            } else {
-                revert("You are attempting to pay towards a loan that has already been fulfilled");
             }
 
         } else {
-            revert("This loan is not in an active state.");
+            revert("This loan is not in an active state");
         }
     }
 
