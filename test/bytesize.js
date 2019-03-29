@@ -183,6 +183,21 @@ contract('ByteSize', async (accounts) => {
         assert.equal(result, false, "The loan was accepted even though it was in a non-requested state");
     });
 
+    it("should revert since a borrower cannot request a loan from themselves", async () => {
+        const byteStorageInstance = await ByteSizeStorage.new();
+        const byteSizeInstance = await ByteSize.new(byteStorageInstance.address);
+        await byteStorageInstance.updateContract(byteSizeInstance.address, { from: accounts[0], gas: 450000 });
+
+        let result;
+        try {
+            result = await byteSizeInstance.requestLoan(accounts[3], 500, 86400, 10, { from: accounts[3], gas: 450000 });
+        } catch(err) {
+            result = err.toString().includes("Invalid request - you cannot be the lender!");
+        }
+
+        assert.equal(result, true, "The loan was accepted even though the lender would also be the borrower");
+    });
+
     /** Loan Payments **/
 
     it("should return a value of 50, referencing the amount of wei paid back so far", async () => {
