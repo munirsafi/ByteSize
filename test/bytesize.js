@@ -263,4 +263,18 @@ contract('ByteSize', async (accounts) => {
         assert.equal(result, true, "The loan accepted the payment even though it was already paid back");
     });
 
+    it("should submit multiple payments and return the amount paid back to the loan so far", async () => {
+        const byteStorageInstance = await ByteSizeStorage.new();
+        const byteSizeInstance = await ByteSize.new(byteStorageInstance.address);
+        await byteStorageInstance.updateContract(byteSizeInstance.address, { from: accounts[0], gas: 450000 });
+
+        await byteSizeInstance.requestLoan(accounts[3], 100, 86400, 10, { from: accounts[0], gas: 450000 });
+        await byteSizeInstance.acceptLoan(0, { from: accounts[3], value: 100 });
+        await byteSizeInstance.payLoan(0, { from: accounts[0], value: 40 });
+        await byteSizeInstance.payLoan(0, { from: accounts[0], value: 35 });
+        const result = await byteSizeInstance.payLoan.call(0, { from: accounts[0], value: 20 });
+
+        assert.equal(result.toNumber(), 95, "The loan accepted the payment even though it was already paid back");
+    });
+
 });
